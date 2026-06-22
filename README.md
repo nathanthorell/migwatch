@@ -44,6 +44,7 @@ migwatch is a CLI tool for visualizing database migration state across environme
 │   └── flyway/
 │       └── flyway.go            # Flyway implementation
 ├── display/
+│   ├── display.go               # Banner and environment header output
 │   ├── styles.go                # Lipgloss style definitions
 │   └── table.go                 # Styled table output
 ├── migwatch.toml                # App config (gitignored)
@@ -71,6 +72,26 @@ provider = "flyway"
 schema   = "dbo"
 table    = "flyway_schema_history"
 ```
+
+### Authentication (SQL Server)
+
+Connection strings go in `.env`. Use the `fedauth` parameter to select the auth method:
+
+```env
+# SQL auth
+DEV_DSN=sqlserver://user:pass@myserver?database=mydb
+
+# Entra - az login token
+DEV_DSN=sqlserver://myserver.database.windows.net?database=mydb&fedauth=ActiveDirectoryAzCli
+
+# Entra - interactive browser
+DEV_DSN=sqlserver://myserver.database.windows.net?database=mydb&fedauth=ActiveDirectoryInteractive
+
+# Entra - default credential chain
+DEV_DSN=sqlserver://myserver.database.windows.net?database=mydb&fedauth=ActiveDirectoryDefault
+```
+
+Interactive auth also requires `AZURE_CLIENT_ID` in `.env` — see `.env.example` for the default value.
 
 ## Building and Running
 

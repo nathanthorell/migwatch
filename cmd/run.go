@@ -60,6 +60,7 @@ func fetchEnvironment(ctx context.Context, key string, env config.EnvironmentCon
 		return result
 	}
 
+	dsn = config.AdjustDSN(dsn)
 	result.Database = config.DatabaseFromDSN(dsn)
 
 	p, err := provider.New(env)
@@ -70,7 +71,7 @@ func fetchEnvironment(ctx context.Context, key string, env config.EnvironmentCon
 
 	migrations, err := p.FetchMigrations(ctx, dsn)
 	if err != nil {
-		result.Error = err
+		result.Error = config.WrapAuthError(err, dsn)
 		return result
 	}
 

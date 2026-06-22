@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -71,6 +72,57 @@ func DatabaseFromDSN(dsn string) string {
 		return ""
 	}
 	return u.Query().Get("database")
+}
+
+// AdjustDSN injects applicationclientid from AZURE_CLIENT_ID env var when using ActiveDirectoryInteractive.
+func AdjustDSN(dsn string) string {
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return dsn
+	}
+	q := u.Query()
+	if q.Get("fedauth") != "ActiveDirectoryInteractive" {
+		return dsn
+	}
+	if q.Get("applicationclientid") != "" {
+		return dsn
+	}
+	clientID := os.Getenv("AZURE_CLIENT_ID")
+	if clientID == "" {
+		return dsn
+	}
+	q.Set("applicationclientid", clientID)
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+func AuthMethodFromDSN(dsn string) string {
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "sql"
+	}
+	if fedauth := u.Query().Get("fedauth"); fedauth != "" {
+		return fedauth
+	}
+	return "sql"
+}
+
+func WrapAuthError(err error, dsn string) error {
+	msg := err.Error()
+	if !strings.Contains(msg, "Login failed") && !strings.Contains(msg, "login error") {
+		return err
+	}
+
+	switch AuthMethodFromDSN(dsn) {
+	case "ActiveDirectoryAzCli":
+		return fmt.Errorf("authentication failed: az login token missing or expired — run `az login`")
+	case "ActiveDirectoryInteractive":
+		return fmt.Errorf("authentication failed: interactive login did not complete")
+	case "ActiveDirectoryDefault":
+		return fmt.Errorf("authentication failed: no valid credential found in default chain (az login, env vars, managed identity)")
+	default:
+		return fmt.Errorf("authentication failed: invalid username or password")
+	}
 }
 
 func userConfigDir() string {

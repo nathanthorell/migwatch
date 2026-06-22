@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 
 	_ "github.com/microsoft/go-mssqldb"
+	_ "github.com/microsoft/go-mssqldb/azuread"
 	"github.com/nathanthorell/migwatch/model"
 )
 
@@ -21,7 +23,7 @@ func New(schema, table string) *Provider {
 func (p *Provider) Name() string { return "flyway" }
 
 func (p *Provider) FetchMigrations(ctx context.Context, dsn string) ([]model.Migration, error) {
-	db, err := sql.Open("sqlserver", dsn)
+	db, err := sql.Open(driverName(dsn), dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open connection: %w", err)
 	}
@@ -73,4 +75,15 @@ func (p *Provider) FetchMigrations(ctx context.Context, dsn string) ([]model.Mig
 	}
 
 	return migrations, rows.Err()
+}
+
+func driverName(dsn string) string {
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "sqlserver"
+	}
+	if u.Query().Get("fedauth") != "" {
+		return "azuresql"
+	}
+	return "sqlserver"
 }
