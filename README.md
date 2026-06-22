@@ -65,11 +65,12 @@ provider = "flyway"
 schema   = "dbo"
 table    = "flyway_schema_history"
 
-[environments.test]
-name     = "Test"
-dsn_env  = "TEST_DSN"
+# multiple schemas on the same database
+[environments.dev_multi]
+name     = "Dev"
+dsn_env  = "DEV_DSN"
 provider = "flyway"
-schema   = "dbo"
+schemas  = ["dbo", "dba"]
 table    = "flyway_schema_history"
 ```
 

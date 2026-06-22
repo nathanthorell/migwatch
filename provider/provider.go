@@ -14,10 +14,10 @@ type MigrationProvider interface {
 	FetchMigrations(ctx context.Context, dsn string) ([]model.Migration, error)
 }
 
-func New(cfg config.EnvironmentConfig) (MigrationProvider, error) {
+func New(cfg config.EnvironmentConfig, schema string) (MigrationProvider, error) {
 	switch cfg.Provider {
 	case "flyway":
-		return flyway.New(cfg.Schema, cfg.Table), nil
+		return flyway.New(schema, cfg.Table), nil
 	default:
 		return nil, fmt.Errorf("unknown provider: %q", cfg.Provider)
 	}

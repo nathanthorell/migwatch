@@ -36,34 +36,44 @@ func runStatus(cmd *cobra.Command, args []string) error {
 
 	ctx := context.Background()
 	for key, env := range envs {
-		result := fetchEnvironment(ctx, key, env)
-		display.PrintMigrationTable(result)
+		label := env.Name
+		if label == "" {
+			label = key
+		}
+
+		dsn := os.Getenv(env.DSNEnv)
+		if dsn == "" {
+			display.PrintEnvironmentHeader(model.EnvironmentResult{Environment: label})
+			fmt.Printf("  error: env var %q is not set\n", env.DSNEnv)
+			fmt.Println()
+			continue
+		}
+
+		dsn = config.AdjustDSN(dsn)
+		database := config.DatabaseFromDSN(dsn)
+
+		display.PrintEnvironmentHeader(model.EnvironmentResult{
+			Environment: label,
+			Database:    database,
+		})
+
+		schemas := env.Schemas()
+		for _, schema := range schemas {
+			result := fetchSchema(ctx, dsn, env, schema)
+			if len(schemas) > 1 {
+				display.PrintSchemaLabel(schema)
+			}
+			display.PrintMigrationTable(result)
+		}
 	}
 
 	return nil
 }
 
-func fetchEnvironment(ctx context.Context, key string, env config.EnvironmentConfig) model.EnvironmentResult {
-	label := env.Name
-	if label == "" {
-		label = key
-	}
+func fetchSchema(ctx context.Context, dsn string, env config.EnvironmentConfig, schema string) model.EnvironmentResult {
+	result := model.EnvironmentResult{Schema: schema}
 
-	result := model.EnvironmentResult{
-		Environment: label,
-		Schema:      env.Schema,
-	}
-
-	dsn := os.Getenv(env.DSNEnv)
-	if dsn == "" {
-		result.Error = fmt.Errorf("env var %q is not set", env.DSNEnv)
-		return result
-	}
-
-	dsn = config.AdjustDSN(dsn)
-	result.Database = config.DatabaseFromDSN(dsn)
-
-	p, err := provider.New(env)
+	p, err := provider.New(env, schema)
 	if err != nil {
 		result.Error = err
 		return result

@@ -11,8 +11,6 @@ import (
 )
 
 func PrintMigrationTable(result model.EnvironmentResult) {
-	PrintEnvironmentHeader(result)
-
 	if result.Error != nil {
 		fmt.Println(styleFailed.Render("  error: " + result.Error.Error()))
 		fmt.Println()

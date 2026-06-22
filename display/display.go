@@ -15,11 +15,13 @@ func PrintBanner() {
 func PrintEnvironmentHeader(result model.EnvironmentResult) {
 	fmt.Println(styleEnvName.Render(result.Environment))
 
-	if result.Database != "" || result.Schema != "" {
-		fmt.Println(styleMeta.Render(
-			fmt.Sprintf("  database: %s   schema: %s", result.Database, result.Schema),
-		))
+	if result.Database != "" {
+		fmt.Println(styleMeta.Render("  database: " + result.Database))
 	}
 
 	fmt.Println()
+}
+
+func PrintSchemaLabel(schema string) {
+	fmt.Println(styleDim.Render("  schema: " + schema))
 }

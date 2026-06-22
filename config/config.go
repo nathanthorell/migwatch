@@ -11,11 +11,22 @@ import (
 )
 
 type EnvironmentConfig struct {
-	Name     string `toml:"name"`
-	DSNEnv   string `toml:"dsn_env"`
-	Provider string `toml:"provider"`
-	Schema   string `toml:"schema"`
-	Table    string `toml:"table"`
+	Name       string   `toml:"name"`
+	DSNEnv     string   `toml:"dsn_env"`
+	Provider   string   `toml:"provider"`
+	Schema     string   `toml:"schema"`
+	SchemaList []string `toml:"schemas"`
+	Table      string   `toml:"table"`
+}
+
+func (e EnvironmentConfig) Schemas() []string {
+	if len(e.SchemaList) > 0 {
+		return e.SchemaList
+	}
+	if e.Schema != "" {
+		return []string{e.Schema}
+	}
+	return []string{"dbo"}
 }
 
 type Config struct {
@@ -34,10 +45,6 @@ func Load(path string) (*Config, error) {
 	}
 
 	for key, env := range cfg.Environments {
-		if env.Schema == "" {
-			env.Schema = "dbo"
-			cfg.Environments[key] = env
-		}
 		if env.Table == "" {
 			env.Table = "flyway_schema_history"
 			cfg.Environments[key] = env
