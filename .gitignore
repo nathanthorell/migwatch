@@ -1,0 +1,22 @@
+# secrets
+.env
+
+# local config
+migwatch.toml
+
+# build output
+build/
+migwatch
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Misc
+temp/
+notes/

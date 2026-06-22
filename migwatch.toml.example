@@ -1,0 +1,24 @@
+# migwatch configuration
+# Copy this file to migwatch.toml and adjust for your environments
+# Reference .env variable names in dsn_env - never put credentials here
+
+[environments.dev]
+name = "Dev"
+dsn_env = "DEV_DSN"
+provider = "flyway"
+schema = "dbo"
+table = "flyway_schema_history"
+
+[environments.test]
+name = "Test"
+dsn_env = "TEST_DSN"
+provider = "flyway"
+schema = "dbo"
+table = "flyway_schema_history"
+
+[environments.prod]
+name = "Prod"
+dsn_env = "PROD_DSN"
+provider = "flyway"
+schema = "dbo"
+table = "flyway_schema_history"
