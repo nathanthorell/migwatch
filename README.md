@@ -38,7 +38,7 @@ migwatch is a CLI tool for visualizing database migration state across environme
 ├── config/                      # Configuration management
 │   └── config.go                # Config code
 ├── model/
-│   └── migration.go             # Shared types
+│   └── models.go                # Shared types
 ├── provider/
 │   ├── provider.go              # MigrationProvider interface
 │   └── flyway/

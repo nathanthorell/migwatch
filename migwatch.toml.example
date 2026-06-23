@@ -23,10 +23,18 @@ provider = "flyway"
 schema = "dbo"
 table = "flyway_schema_history"
 
+# PostgreSQL environment
+[environments.dev_pg]
+name = "Dev PG"
+dsn_env = "DEV_PG_DSN"
+provider = "flyway"
+schema = "public"
+table = "flyway_schema_history"
+
 # multi-schema example: separate Flyway histories on the same database
-# [environments.dev_multi]
-# name = "Dev"
-# dsn_env = "DEV_DSN"
-# provider = "flyway"
-# schemas = ["dbo", "dba"]
-# table = "flyway_schema_history"
+[environments.dev_multi]
+name = "Dev"
+dsn_env = "DEV_DSN"
+provider = "flyway"
+schemas = ["dbo", "dba"]
+table = "flyway_schema_history"

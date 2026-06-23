@@ -11,7 +11,7 @@ import (
 
 type MigrationProvider interface {
 	Name() string
-	FetchMigrations(ctx context.Context, dsn string) ([]model.Migration, error)
+	FetchMigrations(ctx context.Context, conn model.Connection) ([]model.Migration, error)
 }
 
 func New(cfg config.EnvironmentConfig, schema string) (MigrationProvider, error) {

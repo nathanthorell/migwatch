@@ -41,25 +41,24 @@ func runStatus(cmd *cobra.Command, args []string) error {
 			label = key
 		}
 
-		dsn := os.Getenv(env.DSNEnv)
-		if dsn == "" {
+		rawDSN := os.Getenv(env.DSNEnv)
+		if rawDSN == "" {
 			display.PrintEnvironmentHeader(model.EnvironmentResult{Environment: label})
 			fmt.Printf("  error: env var %q is not set\n", env.DSNEnv)
 			fmt.Println()
 			continue
 		}
 
-		dsn = config.AdjustDSN(dsn)
-		database := config.DatabaseFromDSN(dsn)
+		conn := config.BuildConnection(rawDSN)
 
 		display.PrintEnvironmentHeader(model.EnvironmentResult{
 			Environment: label,
-			Database:    database,
+			Database:    conn.Database,
 		})
 
-		schemas := env.Schemas()
+		schemas := env.Schemas(conn.Driver.DefaultSchema())
 		for _, schema := range schemas {
-			result := fetchSchema(ctx, dsn, env, schema)
+			result := fetchSchema(ctx, conn, env, schema)
 			if len(schemas) > 1 {
 				display.PrintSchemaLabel(schema)
 			}
@@ -70,7 +69,7 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func fetchSchema(ctx context.Context, dsn string, env config.EnvironmentConfig, schema string) model.EnvironmentResult {
+func fetchSchema(ctx context.Context, conn model.Connection, env config.EnvironmentConfig, schema string) model.EnvironmentResult {
 	result := model.EnvironmentResult{Schema: schema}
 
 	p, err := provider.New(env, schema)
@@ -79,9 +78,9 @@ func fetchSchema(ctx context.Context, dsn string, env config.EnvironmentConfig, 
 		return result
 	}
 
-	migrations, err := p.FetchMigrations(ctx, dsn)
+	migrations, err := p.FetchMigrations(ctx, conn)
 	if err != nil {
-		result.Error = config.WrapAuthError(err, dsn)
+		result.Error = config.WrapAuthError(err, conn)
 		return result
 	}
 

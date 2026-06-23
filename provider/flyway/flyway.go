@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/url"
 
+	_ "github.com/lib/pq"
 	_ "github.com/microsoft/go-mssqldb"
 	_ "github.com/microsoft/go-mssqldb/azuread"
 	"github.com/nathanthorell/migwatch/model"
@@ -22,8 +22,8 @@ func New(schema, table string) *Provider {
 
 func (p *Provider) Name() string { return "flyway" }
 
-func (p *Provider) FetchMigrations(ctx context.Context, dsn string) ([]model.Migration, error) {
-	db, err := sql.Open(driverName(dsn), dsn)
+func (p *Provider) FetchMigrations(ctx context.Context, conn model.Connection) ([]model.Migration, error) {
+	db, err := sql.Open(goDriverName(conn), conn.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("open connection: %w", err)
 	}
@@ -44,9 +44,9 @@ func (p *Provider) FetchMigrations(ctx context.Context, dsn string) ([]model.Mig
 			installed_on,
 			execution_time,
 			success
-		FROM [%s].[%s]
+		FROM %s
 		ORDER BY installed_rank ASC`,
-		p.schema, p.table,
+		tableRef(conn.Driver, p.schema, p.table),
 	)
 
 	rows, err := db.QueryContext(ctx, query)
@@ -77,13 +77,23 @@ func (p *Provider) FetchMigrations(ctx context.Context, dsn string) ([]model.Mig
 	return migrations, rows.Err()
 }
 
-func driverName(dsn string) string {
-	u, err := url.Parse(dsn)
-	if err != nil {
+func goDriverName(conn model.Connection) string {
+	switch conn.Driver {
+	case model.DriverPostgres:
+		return "postgres"
+	default:
+		if conn.AuthMethod != "" {
+			return "azuresql"
+		}
 		return "sqlserver"
 	}
-	if u.Query().Get("fedauth") != "" {
-		return "azuresql"
+}
+
+func tableRef(driver model.Driver, schema, table string) string {
+	switch driver {
+	case model.DriverPostgres:
+		return fmt.Sprintf(`"%s"."%s"`, schema, table)
+	default:
+		return fmt.Sprintf("[%s].[%s]", schema, table)
 	}
-	return "sqlserver"
 }
