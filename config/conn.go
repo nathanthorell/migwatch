@@ -30,6 +30,7 @@ func BuildConnection(rawDSN string) model.Connection {
 	return model.Connection{
 		DSN:        dsn,
 		Driver:     driver,
+		Host:       u.Hostname(),
 		Database:   database,
 		AuthMethod: authMethod,
 	}

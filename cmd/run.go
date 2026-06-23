@@ -32,7 +32,26 @@ func runStatus(cmd *cobra.Command, args []string) error {
 		envs = map[string]config.EnvironmentConfig{envFilter: env}
 	}
 
-	display.PrintBanner()
+	var summaries []model.EnvironmentSummary
+	for key, env := range envs {
+		label := env.Name
+		if label == "" {
+			label = key
+		}
+		s := model.EnvironmentSummary{Label: label}
+		if rawDSN := os.Getenv(env.DSNEnv); rawDSN != "" {
+			conn := config.BuildConnection(rawDSN)
+			s.Driver = conn.Driver
+			s.Host = conn.Host
+			s.Database = conn.Database
+			if env.Database != "" {
+				s.Database = env.Database
+			}
+		}
+		summaries = append(summaries, s)
+	}
+
+	display.PrintBanner(summaries)
 
 	ctx := context.Background()
 	for key, env := range envs {

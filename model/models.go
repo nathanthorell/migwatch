@@ -23,8 +23,16 @@ func (d Driver) DefaultSchema() string {
 type Connection struct {
 	DSN        string
 	Driver     Driver
+	Host       string
 	Database   string
 	AuthMethod string
+}
+
+type EnvironmentSummary struct {
+	Label    string
+	Driver   Driver
+	Host     string
+	Database string
 }
 
 type Migration struct {
