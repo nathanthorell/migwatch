@@ -12,6 +12,7 @@ type EnvironmentConfig struct {
 	Name       string   `toml:"name"`
 	DSNEnv     string   `toml:"dsn_env"`
 	Provider   string   `toml:"provider"`
+	Database   string   `toml:"database"`
 	Schema     string   `toml:"schema"`
 	SchemaList []string `toml:"schemas"`
 	Table      string   `toml:"table"`

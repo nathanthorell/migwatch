@@ -74,6 +74,15 @@ dsn_env  = "DEV_DSN"
 provider = "flyway"
 schemas  = ["dbo", "dba"]
 table    = "flyway_schema_history"
+
+# database override: one shared DSN, different database per environment
+[environments.staging]
+name     = "Staging"
+dsn_env  = "DEV_DSN"
+provider = "flyway"
+database = "stagingdb"
+schema   = "dbo"
+table    = "flyway_schema_history"
 ```
 
 ### Authentication (SQL Server)
