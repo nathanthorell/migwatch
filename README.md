@@ -36,7 +36,9 @@ migwatch is a CLI tool for visualizing database migration state across environme
 │   ├── root.go                  # Command definition and flags
 │   └── run.go                   # Execution logic
 ├── config/                      # Configuration management
-│   └── config.go                # Config code
+│   ├── config.go                # TOML types and loading
+│   ├── conn.go                  # DSN parsing and connection building
+│   └── auth.go                  # Token resolution and auth error wrapping
 ├── model/
 │   └── models.go                # Shared types
 ├── provider/
@@ -92,7 +94,22 @@ DEV_DSN=sqlserver://myserver.database.windows.net?database=mydb&fedauth=ActiveDi
 DEV_DSN=sqlserver://myserver.database.windows.net?database=mydb&fedauth=ActiveDirectoryDefault
 ```
 
-Interactive auth also requires `AZURE_CLIENT_ID` in `.env` — see `.env.example` for the default value.
+Interactive auth also requires `AZURE_CLIENT_ID` in `.env` - see `.env.example` for the default value.
+
+### Authentication (PostgreSQL)
+
+```env
+# Password auth
+DEV_DSN=postgres://user:pass@myserver:5432/mydb?sslmode=disable
+
+# Entra - az login token (Azure Flexible Server)
+DEV_DSN=postgres://user%40example.com@myserver.postgres.database.azure.com/mydb?sslmode=require&fedauth=ActiveDirectoryAzCli
+
+# Entra - default credential chain (Azure Flexible Server)
+DEV_DSN=postgres://user%40example.com@myserver.postgres.database.azure.com/mydb?sslmode=require&fedauth=ActiveDirectoryDefault
+```
+
+Note: the `@` in the username should be percent-encoded as `%40` - both forms work, but `%40` is safer and standards-compliant.
 
 ## Building and Running
 

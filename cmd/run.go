@@ -49,7 +49,12 @@ func runStatus(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		conn := config.BuildConnection(rawDSN)
+		conn, err := config.ResolveConnection(ctx, config.BuildConnection(rawDSN))
+		if err != nil {
+			display.PrintEnvironmentHeader(model.EnvironmentResult{Environment: label})
+			fmt.Printf("  error: %v\n\n", err)
+			continue
+		}
 
 		display.PrintEnvironmentHeader(model.EnvironmentResult{
 			Environment: label,

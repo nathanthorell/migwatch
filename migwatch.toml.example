@@ -9,13 +9,6 @@ provider = "flyway"
 schema = "dbo"
 table = "flyway_schema_history"
 
-[environments.test]
-name = "Test"
-dsn_env = "TEST_DSN"
-provider = "flyway"
-schema = "dbo"
-table = "flyway_schema_history"
-
 [environments.prod]
 name = "Prod"
 dsn_env = "PROD_DSN"
