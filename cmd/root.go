@@ -15,7 +15,19 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "migwatch",
 	Short: "Visualize database migration state across environments",
-	RunE:  runStatus,
+	RunE:  runSummary,
+}
+
+var summaryCmd = &cobra.Command{
+	Use:   "summary",
+	Short: "Show summary of migration state per environment (default)",
+	RunE:  runSummary,
+}
+
+var fullCmd = &cobra.Command{
+	Use:   "full",
+	Short: "Show full migration history table per environment",
+	RunE:  runFull,
 }
 
 func Execute() {
@@ -27,5 +39,8 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default: ./migwatch.toml or ~/.config/migwatch/migwatch.toml)")
 	rootCmd.PersistentFlags().StringVar(&envFile, "env-file", "", "env file (default: ./.env)")
-	rootCmd.Flags().StringVarP(&envFilter, "env", "e", "", "filter to a single environment")
+	rootCmd.PersistentFlags().StringVarP(&envFilter, "env", "e", "", "filter to a single environment")
+
+	rootCmd.AddCommand(summaryCmd)
+	rootCmd.AddCommand(fullCmd)
 }

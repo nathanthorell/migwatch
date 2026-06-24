@@ -13,7 +13,93 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func runStatus(cmd *cobra.Command, args []string) error {
+func runSummary(cmd *cobra.Command, args []string) error {
+	if err := loadEnvFile(); err != nil {
+		return err
+	}
+
+	cfg, err := config.Load(configFile)
+	if err != nil {
+		return err
+	}
+
+	envs := cfg.Environments
+	if envFilter != "" {
+		env, ok := envs[envFilter]
+		if !ok {
+			return fmt.Errorf("environment %q not found in config", envFilter)
+		}
+		envs = map[string]config.EnvironmentConfig{envFilter: env}
+	}
+
+	var summaries []model.EnvironmentSummary
+	for key, env := range envs {
+		label := env.Name
+		if label == "" {
+			label = key
+		}
+		s := model.EnvironmentSummary{Label: label}
+		if rawDSN := os.Getenv(env.DSNEnv); rawDSN != "" {
+			conn := config.BuildConnection(rawDSN)
+			s.Driver = conn.Driver
+			s.Host = conn.Host
+			s.Database = conn.Database
+			if env.Database != "" {
+				s.Database = env.Database
+			}
+		}
+		summaries = append(summaries, s)
+	}
+
+	display.PrintBanner(summaries)
+
+	ctx := context.Background()
+	for key, env := range envs {
+		label := env.Name
+		if label == "" {
+			label = key
+		}
+
+		rawDSN := os.Getenv(env.DSNEnv)
+		if rawDSN == "" {
+			display.PrintEnvironmentHeader(model.EnvironmentResult{Environment: label})
+			fmt.Printf("  error: env var %q is not set\n", env.DSNEnv)
+			fmt.Println()
+			continue
+		}
+
+		conn, err := config.OverrideDatabase(config.BuildConnection(rawDSN), env.Database)
+		if err != nil {
+			display.PrintEnvironmentHeader(model.EnvironmentResult{Environment: label})
+			fmt.Printf("  error: %v\n\n", err)
+			continue
+		}
+		conn, err = config.ResolveConnection(ctx, conn)
+		if err != nil {
+			display.PrintEnvironmentHeader(model.EnvironmentResult{Environment: label})
+			fmt.Printf("  error: %v\n\n", err)
+			continue
+		}
+
+		display.PrintEnvironmentHeader(model.EnvironmentResult{
+			Environment: label,
+			Database:    conn.Database,
+		})
+
+		schemas := env.Schemas(conn.Driver.DefaultSchema())
+		for _, schema := range schemas {
+			result := fetchSchema(ctx, conn, env, schema)
+			if len(schemas) > 1 {
+				display.PrintSchemaLabel(schema)
+			}
+			display.PrintSummary(result)
+		}
+	}
+
+	return nil
+}
+
+func runFull(cmd *cobra.Command, args []string) error {
 	if err := loadEnvFile(); err != nil {
 		return err
 	}

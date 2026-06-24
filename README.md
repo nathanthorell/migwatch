@@ -18,11 +18,15 @@ migwatch is a CLI tool for visualizing database migration state across environme
 4. **Run**:
 
    ```bash
-   # Show migration status for all environments
+   # Show summary for all environments (default)
    ./migwatch
 
-   # Show status for a specific environment
+   # Show full migration history table
+   ./migwatch full
+
+   # Filter to a specific environment
    ./migwatch --env dev
+   ./migwatch full --env dev
    ```
 
 ## Configuration
@@ -126,15 +130,24 @@ Note: the `@` in the username should be percent-encoded as `%40` - both forms wo
 # Build the application
 go build -o ./build/migwatch .
 
-# Show migration status for all environments
+# Show summary for all environments (default)
 ./build/migwatch
+
+# Show full migration history table
+./build/migwatch full
 
 # Filter to one environment
 ./build/migwatch --env dev
+./build/migwatch full --env dev
 
 # Use a custom config or env file
 ./build/migwatch --config /path/to/migwatch.toml --env-file /path/to/.env
 ```
+
+## Commands
+
+- `migwatch` / `migwatch summary` - Summary view: last migration, total count, failures per environment
+- `migwatch full` - Full migration history table per environment
 
 ## Flags
 
