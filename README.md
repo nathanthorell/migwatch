@@ -21,6 +21,9 @@ migwatch is a CLI tool for visualizing database migration state across environme
    # Show summary for all environments (default)
    ./migwatch
 
+   # Compare migration state across all environments
+   ./migwatch compare
+
    # Show full migration history table
    ./migwatch full
 
@@ -38,9 +41,13 @@ migwatch is a CLI tool for visualizing database migration state across environme
 ├── main.go                      # App entry point
 ├── cmd/                         # CLI commands
 │   ├── root.go                  # Command definition and flags
-│   └── run.go                   # Execution logic
+│   ├── helpers.go               # Shared helpers (fetch, banner, env label)
+│   ├── run_summary.go           # migwatch / migwatch summary
+│   ├── run_full.go              # migwatch full
+│   └── run_compare.go           # migwatch compare
 ├── config/                      # Configuration management
 │   ├── config.go                # TOML types and loading
+│   ├── environments.go          # EnvironmentConfig type and ordered env access
 │   ├── conn.go                  # DSN parsing and connection building
 │   └── auth.go                  # Token resolution and auth error wrapping
 ├── model/
@@ -52,7 +59,9 @@ migwatch is a CLI tool for visualizing database migration state across environme
 ├── display/
 │   ├── display.go               # Banner and environment header output
 │   ├── styles.go                # Lipgloss style definitions
-│   └── table.go                 # Styled table output
+│   ├── table.go                 # Styled table output
+│   ├── summary.go               # Per-environment summary output
+│   └── compare.go               # Multi-environment comparison table
 ├── migwatch.toml                # App config (gitignored)
 ├── migwatch.toml.example        # Example config
 ├── .env                         # Connection strings (gitignored)
@@ -133,6 +142,9 @@ go build -o ./build/migwatch .
 # Show summary for all environments (default)
 ./build/migwatch
 
+# Compare migration state across all environments
+./build/migwatch compare
+
 # Show full migration history table
 ./build/migwatch full
 
@@ -147,6 +159,7 @@ go build -o ./build/migwatch .
 ## Commands
 
 - `migwatch` / `migwatch summary` - Summary view: last migration, total count, failures per environment
+- `migwatch compare` - Multi-environment comparison table: latest version and repeatable checksums per env, color-coded by value match
 - `migwatch full` - Full migration history table per environment
 
 ## Flags

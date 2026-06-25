@@ -30,6 +30,12 @@ var fullCmd = &cobra.Command{
 	RunE:  runFull,
 }
 
+var compareCmd = &cobra.Command{
+	Use:   "compare",
+	Short: "Compare migration state across all environments",
+	RunE:  runCompare,
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
@@ -43,4 +49,5 @@ func init() {
 
 	rootCmd.AddCommand(summaryCmd)
 	rootCmd.AddCommand(fullCmd)
+	rootCmd.AddCommand(compareCmd)
 }

@@ -44,6 +44,7 @@ type Migration struct {
 	InstalledBy   string
 	InstalledOn   time.Time
 	ExecutionTime int
+	Checksum      int
 	Success       bool
 }
 

@@ -8,28 +8,9 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type EnvironmentConfig struct {
-	Name       string   `toml:"name"`
-	DSNEnv     string   `toml:"dsn_env"`
-	Provider   string   `toml:"provider"`
-	Database   string   `toml:"database"`
-	Schema     string   `toml:"schema"`
-	SchemaList []string `toml:"schemas"`
-	Table      string   `toml:"table"`
-}
-
-func (e EnvironmentConfig) Schemas(defaultSchema string) []string {
-	if len(e.SchemaList) > 0 {
-		return e.SchemaList
-	}
-	if e.Schema != "" {
-		return []string{e.Schema}
-	}
-	return []string{defaultSchema}
-}
-
 type Config struct {
-	Environments map[string]EnvironmentConfig `toml:"environments"`
+	Environments     map[string]EnvironmentConfig `toml:"environments"`
+	EnvironmentOrder []string                     `toml:"-"`
 }
 
 func Load(path string) (*Config, error) {
@@ -39,8 +20,15 @@ func Load(path string) (*Config, error) {
 	}
 
 	var cfg Config
-	if _, err := toml.DecodeFile(resolved, &cfg); err != nil {
+	meta, err := toml.DecodeFile(resolved, &cfg)
+	if err != nil {
 		return nil, fmt.Errorf("parse config %s: %w", resolved, err)
+	}
+
+	for _, k := range meta.Keys() {
+		if len(k) == 2 && k[0] == "environments" {
+			cfg.EnvironmentOrder = append(cfg.EnvironmentOrder, k[1])
+		}
 	}
 
 	for key, env := range cfg.Environments {

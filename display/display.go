@@ -21,9 +21,15 @@ func PrintBanner(summaries []model.EnvironmentSummary) {
 	}
 
 	if len(summaries) > 0 {
+		maxLabelLen := 0
+		for _, s := range summaries {
+			if len(s.Label) > maxLabelLen {
+				maxLabelLen = len(s.Label)
+			}
+		}
 		lines = append(lines, "")
 		for _, s := range summaries {
-			lines = append(lines, renderSummaryLine(s, termWidth))
+			lines = append(lines, renderSummaryLine(s, termWidth, maxLabelLen))
 		}
 	}
 
@@ -32,8 +38,9 @@ func PrintBanner(summaries []model.EnvironmentSummary) {
 	fmt.Println()
 }
 
-func renderSummaryLine(s model.EnvironmentSummary, termWidth int) string {
-	envLabel := styleMeta.Render("Env: ") + styleBannerTitle.Render(s.Label)
+func renderSummaryLine(s model.EnvironmentSummary, termWidth, maxLabelLen int) string {
+	paddedLabel := fmt.Sprintf("%-*s", maxLabelLen, s.Label)
+	envLabel := styleMeta.Render("Env: ") + styleBannerTitle.Render(paddedLabel)
 	connParts := []string{
 		"Driver: " + string(s.Driver),
 		"Server: " + s.Host,

@@ -43,6 +43,7 @@ func (p *Provider) FetchMigrations(ctx context.Context, conn model.Connection) (
 			installed_by,
 			installed_on,
 			execution_time,
+			COALESCE(checksum, 0),
 			success
 		FROM %s
 		ORDER BY installed_rank ASC`,
@@ -67,6 +68,7 @@ func (p *Provider) FetchMigrations(ctx context.Context, conn model.Connection) (
 			&m.InstalledBy,
 			&m.InstalledOn,
 			&m.ExecutionTime,
+			&m.Checksum,
 			&m.Success,
 		); err != nil {
 			return nil, fmt.Errorf("scan row: %w", err)
